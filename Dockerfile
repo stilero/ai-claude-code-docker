@@ -91,8 +91,9 @@ RUN npm install -g github-speckit || echo "SpecKit not available via npm - skip 
 COPY init-firewall.sh /usr/local/bin/
 COPY entrypoint.sh /usr/local/bin/
 COPY git-clone-helper.sh /usr/local/bin/git-clone-ado
+COPY setup-git-credentials.sh /usr/local/bin/setup-git-credentials
 USER root
-RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/entrypoint.sh /usr/local/bin/git-clone-ado && \
+RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/entrypoint.sh /usr/local/bin/git-clone-ado /usr/local/bin/setup-git-credentials && \
     echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
     echo "node ALL=(root) NOPASSWD: /bin/chown -R node\\:node /home/node/.claude" >> /etc/sudoers.d/node-firewall && \
     echo "node ALL=(root) NOPASSWD: /bin/chown -R node\\:node /workspace" >> /etc/sudoers.d/node-firewall && \

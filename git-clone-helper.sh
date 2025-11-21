@@ -15,6 +15,9 @@ REPO_URL="$1"
 # Remove https:// if present
 REPO_URL="${REPO_URL#https://}"
 
+# Remove any existing username@ from the URL
+REPO_URL="${REPO_URL#*@}"
+
 # Check if PAT is set
 if [ -z "$AZURE_DEVOPS_PAT" ]; then
     echo "Error: AZURE_DEVOPS_PAT environment variable not set"
