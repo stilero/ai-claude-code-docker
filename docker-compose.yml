@@ -38,6 +38,9 @@ services:
       # Set your Anthropic API key here or pass it at runtime
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 
+      # Azure DevOps authentication
+      - AZURE_DEVOPS_PAT=${AZURE_DEVOPS_PAT}
+
       # Optional: Set other environment variables
       - NODE_ENV=development
 
