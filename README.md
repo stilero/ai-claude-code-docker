@@ -4,14 +4,21 @@ This repository provides a Dockerized environment for running Claude Code with S
 
 ## Features
 
-- Claude Code CLI pre-installed
-- SpecKit integration
-- 24 custom agents organized by category:
+- **Claude Code CLI** pre-installed (official setup)
+- **SpecKit integration** for structured development
+- **24 custom agents** organized by category:
   - **Coordination**: orchestrator
   - **Implementation**: python-backend-dev, react-typescript-specialist, stagehand-expert
   - **Research & Planning**: angular-expert, azure-devops-pipelines-expert, azure-monitor-logs-expert, chatgpt-expert, csharp-expert, figma-expert, maui-expert, mcp-builder-expert, nextjs-expert, prd-writer, pull-requests-expert, shadcn-expert, system-architect, ui-designer, youtube-api-expert
   - **Testing**: api-backend-tester, api-frontend-tester
   - **Setup & Tools**: claude-code-setup-expert, docker-expert, speckit-expert
+- **Enhanced Developer Experience**:
+  - Zsh shell with plugins (git, fzf) and auto-completion
+  - Git-delta for beautiful git diffs
+  - Persistent command history across sessions
+  - GitHub CLI (gh) pre-installed
+  - Full development toolset (jq, vim, nano, etc.)
+- **Security**: Runs as non-root user with proper permissions
 - Persistent workspace for your projects
 - Git and essential development tools included
 
@@ -53,7 +60,7 @@ docker-compose up -d --build
 ### 4. Access the Container
 
 ```bash
-docker-compose exec claude-code bash
+docker-compose exec claude-code zsh
 ```
 
 Or, attach to the running container:
@@ -61,6 +68,8 @@ Or, attach to the running container:
 ```bash
 docker attach claude-code-container
 ```
+
+**Note**: The container uses `zsh` as the default shell with enhanced features like syntax highlighting and auto-completion.
 
 ### 5. Start Using Claude Code
 
@@ -96,6 +105,7 @@ ai-claude-code-docker/
 ├── .gitignore
 ├── docker-compose.yml
 ├── Dockerfile
+├── init-firewall.sh                 # Network sandboxing script
 └── README.md
 ```
 
@@ -184,16 +194,17 @@ You can customize the container behavior by modifying environment variables in t
 ### Volume Mounts
 
 - `./workspace:/workspace`: Your project files
-- `claude-code-config:/root/.claude`: Persistent Claude Code configuration
-- `./agents:/root/.claude/agents:ro`: Agents (read-only)
+- `claude-code-config:/home/node/.claude`: Persistent Claude Code configuration
+- `command-history:/commandhistory`: Persistent command history across sessions
+- `./agents:/home/node/.claude/agents:ro`: Agents (read-only)
 
 ### Optional: Git Configuration
 
 To use git inside the container with your credentials, uncomment these lines in `docker-compose.yml`:
 
 ```yaml
-# - ~/.gitconfig:/root/.gitconfig:ro
-# - ~/.ssh:/root/.ssh:ro
+# - ~/.gitconfig:/home/node/.gitconfig:ro
+# - ~/.ssh:/home/node/.ssh:ro
 ```
 
 ## Troubleshooting
@@ -207,16 +218,12 @@ Ensure your `.env` file is in the same directory as `docker-compose.yml` and con
 Verify that the agents are mounted correctly:
 
 ```bash
-docker-compose exec claude-code ls -la /root/.claude/agents/
+docker-compose exec claude-code ls -la /home/node/.claude/agents/
 ```
 
 ### Permission Issues
 
-If you encounter permission issues with the workspace, you may need to adjust the ownership:
-
-```bash
-docker-compose exec claude-code chown -R root:root /workspace
-```
+The container runs as the `node` user (non-root) for security. If you encounter permission issues with the workspace, check file ownership. Files created in the container will be owned by the `node` user (UID 1000).
 
 ## Contributing
 

@@ -1,76 +1,99 @@
-# Base image with Node.js
-FROM node:20-slim
+FROM node:20
 
-# Install essential tools
-RUN apt-get update && apt-get install -y \
+ARG TZ
+ENV TZ="$TZ"
+
+ARG CLAUDE_CODE_VERSION=latest
+
+# Install basic development tools and iptables/ipset
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    less \
     git \
+    procps \
+    sudo \
+    fzf \
+    zsh \
+    man-db \
+    unzip \
+    gnupg2 \
+    gh \
+    iptables \
+    ipset \
+    iproute2 \
+    dnsutils \
+    aggregate \
+    jq \
+    nano \
+    vim \
     curl \
     wget \
-    vim \
-    nano \
     bash-completion \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set up working directory
+# Ensure default node user has access to /usr/local/share
+RUN mkdir -p /usr/local/share/npm-global && \
+    chown -R node:node /usr/local/share
+
+ARG USERNAME=node
+
+# Persist bash history
+RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+    && mkdir /commandhistory \
+    && touch /commandhistory/.bash_history \
+    && chown -R $USERNAME /commandhistory
+
+ENV DEVCONTAINER=true
+
+# Create workspace and config directories and set permissions
+RUN mkdir -p /workspace /home/node/.claude/agents && \
+    chown -R node:node /workspace /home/node/.claude
+
 WORKDIR /workspace
 
-# Create Claude Code configuration directory
-RUN mkdir -p /root/.claude/agents
+# Install git-delta for better git diffs
+ARG GIT_DELTA_VERSION=0.18.2
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
+    dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
+    rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
 
-# Copy agents to Claude Code directory
-COPY agents/ /root/.claude/agents/
+# Copy custom agents to Claude Code directory
+COPY --chown=node:node agents/ /home/node/.claude/agents/
+
+USER node
+
+ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
+ENV PATH=$PATH:/usr/local/share/npm-global/bin
+
+ENV SHELL=/bin/zsh
+
+ENV EDITOR=nano
+ENV VISUAL=nano
+
+# Set up zsh with plugins and configurations
+ARG ZSH_IN_DOCKER_VERSION=1.2.0
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
+    -p git \
+    -p fzf \
+    -a "source /usr/share/doc/fzf/examples/key-bindings.zsh" \
+    -a "source /usr/share/doc/fzf/examples/completion.zsh" \
+    -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
+    -x
 
 # Install Claude Code CLI globally
-RUN npm install -g @anthropic-ai/claude-code
+RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 
-# Install SpecKit globally (assuming it's available via npm)
-# If SpecKit needs to be installed differently, update this step
-RUN npm install -g github-speckit || echo "SpecKit installation step - update if needed"
+# Install SpecKit globally (if available)
+RUN npm install -g github-speckit || echo "SpecKit not available via npm - skip installation"
 
-# Set environment variables
-ENV CLAUDE_CODE_HOME=/root/.claude
+# Copy and set up firewall script
+COPY init-firewall.sh /usr/local/bin/
+USER root
+RUN chmod +x /usr/local/bin/init-firewall.sh && \
+    echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
+    chmod 0440 /etc/sudoers.d/node-firewall
+USER node
+
+# Set environment variables for Claude Code
+ENV CLAUDE_CODE_HOME=/home/node/.claude
 ENV WORKSPACE=/workspace
-
-# Create a startup script
-RUN echo '#!/bin/bash\n\
-echo "============================================"\n\
-echo "Claude Code with SpecKit - Docker Container"\n\
-echo "============================================"\n\
-echo ""\n\
-echo "Available agents:"\n\
-echo "  - claude-code-setup-expert"\n\
-echo "  - speckit-expert"\n\
-echo "  - docker-expert"\n\
-echo "  - orchestrator"\n\
-echo "  - python-backend-dev"\n\
-echo "  - react-typescript-specialist"\n\
-echo "  - stagehand-expert"\n\
-echo "  - angular-expert"\n\
-echo "  - azure-devops-pipelines-expert"\n\
-echo "  - azure-monitor-logs-expert"\n\
-echo "  - chatgpt-expert"\n\
-echo "  - csharp-expert"\n\
-echo "  - figma-expert"\n\
-echo "  - maui-expert"\n\
-echo "  - mcp-builder-expert"\n\
-echo "  - nextjs-expert"\n\
-echo "  - prd-writer"\n\
-echo "  - pull-requests-expert"\n\
-echo "  - shadcn-expert"\n\
-echo "  - system-architect"\n\
-echo "  - ui-designer"\n\
-echo "  - youtube-api-expert"\n\
-echo "  - api-backend-tester"\n\
-echo "  - api-frontend-tester"\n\
-echo ""\n\
-echo "Starting interactive shell..."\n\
-echo "Run '\''claude-code'\'' to start Claude Code"\n\
-echo ""\n\
-exec /bin/bash' > /usr/local/bin/entrypoint.sh && \
-    chmod +x /usr/local/bin/entrypoint.sh
-
-# Set the entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Default command
-CMD ["/bin/bash"]
