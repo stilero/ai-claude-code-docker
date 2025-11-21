@@ -86,14 +86,20 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 # Install SpecKit globally (if available)
 RUN npm install -g github-speckit || echo "SpecKit not available via npm - skip installation"
 
-# Copy and set up firewall script
+# Copy and set up firewall script and entrypoint
 COPY init-firewall.sh /usr/local/bin/
+COPY entrypoint.sh /usr/local/bin/
 USER root
-RUN chmod +x /usr/local/bin/init-firewall.sh && \
+RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/entrypoint.sh && \
     echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
+    echo "node ALL=(root) NOPASSWD: /bin/chown node\\:node /home/node/.claude" >> /etc/sudoers.d/node-firewall && \
     chmod 0440 /etc/sudoers.d/node-firewall
 USER node
 
 # Set environment variables for Claude Code
 ENV CLAUDE_CODE_HOME=/home/node/.claude
 ENV WORKSPACE=/workspace
+
+# Set entrypoint to fix permissions on startup
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/bin/zsh"]
