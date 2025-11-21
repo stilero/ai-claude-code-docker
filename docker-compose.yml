@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  claude-code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: claude-code-speckit:latest
+    container_name: claude-code-container
+
+    # Interactive terminal
+    stdin_open: true
+    tty: true
+
+    # Volume mounts
+    volumes:
+      # Mount your project directory
+      - ./workspace:/workspace
+
+      # Persist Claude Code configuration
+      - claude-code-config:/root/.claude
+
+      # Mount agents (read-only to prevent accidental modifications)
+      - ./agents:/root/.claude/agents:ro
+
+      # Optional: Mount your git config if you want to commit from inside the container
+      # - ~/.gitconfig:/root/.gitconfig:ro
+
+      # Optional: Mount SSH keys for git operations
+      # - ~/.ssh:/root/.ssh:ro
+
+    # Environment variables
+    environment:
+      # Set your Anthropic API key here or pass it at runtime
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+
+      # Optional: Set other environment variables
+      - NODE_ENV=development
+
+    # Working directory
+    working_dir: /workspace
+
+    # Network mode
+    network_mode: bridge
+
+# Named volumes
+volumes:
+  claude-code-config:
+    driver: local
