@@ -21,7 +21,7 @@ RUN mkdir -p /root/.claude/agents
 COPY agents/ /root/.claude/agents/
 
 # Install Claude Code CLI globally
-RUN npm install -g @anthropics/claude-code
+RUN npm install -g @anthropic-ai/claude-code
 
 # Install SpecKit globally (assuming it's available via npm)
 # If SpecKit needs to be installed differently, update this step
