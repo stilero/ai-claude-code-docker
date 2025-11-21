@@ -21,11 +21,9 @@ if [ -n "$AZURE_DEVOPS_PAT" ] && [ ! -f ~/.git-credentials ]; then
     git config --global user.email "user@example.com" 2>/dev/null || true
     git config --global user.name "Docker User" 2>/dev/null || true
 
-    # Create credentials file with PAT
-    cat > ~/.git-credentials << EOF
-https://${AZURE_DEVOPS_PAT}@dev.azure.com
-EOF
-    chmod 600 ~/.git-credentials
+    # Use git credential approve to properly store credentials
+    printf "protocol=https\nhost=dev.azure.com\nusername=${AZURE_DEVOPS_PAT}\npassword=${AZURE_DEVOPS_PAT}\n\n" | git credential approve
+
     echo "Git credentials configured automatically!"
 fi
 

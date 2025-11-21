@@ -15,13 +15,8 @@ git config --global credential.helper store
 git config --global user.email "user@example.com"
 git config --global user.name "Docker User"
 
-# Create credentials file with PAT for Azure DevOps
-mkdir -p ~/.config/git
-cat > ~/.git-credentials << EOF
-https://${AZURE_DEVOPS_PAT}@dev.azure.com
-EOF
-
-chmod 600 ~/.git-credentials
+# Use git credential approve to properly store credentials
+printf "protocol=https\nhost=dev.azure.com\nusername=${AZURE_DEVOPS_PAT}\npassword=${AZURE_DEVOPS_PAT}\n\n" | git credential approve
 
 echo "Git credentials configured successfully!"
 echo "You can now clone repos without entering credentials."
