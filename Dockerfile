@@ -57,8 +57,9 @@ RUN ARCH=$(dpkg --print-architecture) && \
     dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
     rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
 
-# Copy custom agents to Claude Code directory
+# Copy custom agents and commands to Claude Code directory
 COPY --chown=node:node agents/ /home/node/.claude/agents/
+COPY --chown=node:node commands/ /home/node/.claude/commands/
 
 USER node
 

@@ -24,6 +24,9 @@ services:
       # Mount agents (read-only to prevent accidental modifications)
       - ./agents:/home/node/.claude/agents:ro
 
+      # Mount commands (read-only to prevent accidental modifications)
+      - ./commands:/home/node/.claude/commands:ro
+
       # Optional: Mount your git config if you want to commit from inside the container
       # - ~/.gitconfig:/home/node/.gitconfig:ro
 

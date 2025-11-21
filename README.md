@@ -6,6 +6,10 @@ This repository provides a Dockerized environment for running Claude Code with S
 
 - **Claude Code CLI** pre-installed (official setup)
 - **SpecKit integration** for structured development
+- **Custom slash commands** for streamlined workflows:
+  - **SpecKit commands**: specify, plan, tasks, implement, analyze, clarify, checklist, constitution
+  - **Captur commands**: design-angular-feature, design-csharp-feature, implement-angular-feature, implement-csharp-feature, review-current-branch, devops-prompt-engineer
+  - **Dev commands**: design-backend, design-app, implement-backend, implement-app, prompt-engineer
 - **24 custom agents** organized by category:
   - **Coordination**: orchestrator
   - **Implementation**: python-backend-dev, react-typescript-specialist, stagehand-expert
@@ -100,11 +104,32 @@ ai-claude-code-docker/
 │   ├── claude-code-setup-expert.md
 │   ├── docker-expert.md
 │   └── speckit-expert.md
+├── commands/                        # All custom slash commands (source-controlled)
+│   ├── captur/                      # Captur-specific commands
+│   │   ├── design-angular-feature.md
+│   │   ├── design-csharp-feature.md
+│   │   ├── implement-angular-feature.md
+│   │   ├── implement-csharp-feature.md
+│   │   ├── review-current-branch.md
+│   │   └── devops-prompt-engineer.md
+│   ├── dev/                         # Development workflow commands
+│   │   ├── design-backend.md
+│   │   ├── design-app.md
+│   │   ├── implement-backend.md
+│   │   ├── implement-app.md
+│   │   └── prompt-engineer.md
+│   ├── agent_prompts/               # Agent prompt templates
+│   ├── speckit.specify.md
+│   ├── speckit.plan.md
+│   ├── speckit.tasks.md
+│   ├── speckit.implement.md
+│   └── ... (more speckit commands)
 ├── workspace/                       # Your projects go here (gitignored)
 ├── .env.example                     # Example environment variables
 ├── .gitignore
 ├── docker-compose.yml
 ├── Dockerfile
+├── entrypoint.sh                    # Startup script for permissions
 ├── init-firewall.sh                 # Network sandboxing script
 └── README.md
 ```
@@ -124,30 +149,37 @@ cd my-project
 claude-code
 ```
 
-### Available Agents
+### Available Agents and Commands
 
-All agents are pre-loaded and ready to use. You can reference them in your Claude Code sessions:
+All agents and slash commands are pre-loaded and ready to use.
 
+**Agents** - Reference with `@agent-name`:
 - **Coordination**: For orchestrating complex multi-step tasks
 - **Implementation**: For hands-on coding in Python, React/TypeScript, and more
 - **Research & Planning**: For architecture, design, and planning tasks
 - **Testing**: For API and frontend testing
 
-### Updating Agents
+**Slash Commands** - Use with `/command-name`:
+- **SpecKit**: `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`, etc.
+- **Captur**: `/captur:design-angular-feature`, `/captur:implement-csharp-feature`, `/captur:review-current-branch`
+- **Dev**: `/dev:design-backend`, `/dev:implement-app`, `/dev:prompt-engineer`
 
-To update an agent:
+### Updating Agents or Commands
 
-1. Edit the corresponding `.md` file in the `agents/` directory
-2. Rebuild the Docker image:
+To update an agent or slash command:
+
+1. Edit the corresponding `.md` file in the `agents/` or `commands/` directory
+2. Changes are immediately available (no rebuild needed, they're mounted as volumes)
+3. To make them permanent in the image, rebuild:
    ```bash
    docker-compose down
    docker-compose up -d --build
    ```
 
-### Adding New Agents
+### Adding New Agents or Commands
 
-1. Add the new agent file to the appropriate subdirectory in `agents/`
-2. Rebuild the Docker image
+1. Add the new file to the appropriate subdirectory in `agents/` or `commands/`
+2. Restart the container (or rebuild for permanent inclusion)
 3. Commit the changes to keep them source-controlled
 
 ## Managing the Container
