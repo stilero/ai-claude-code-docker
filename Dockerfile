@@ -28,7 +28,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     bash-completion \
+    ca-certificates \
+    lsb-release \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Azure CLI for Azure DevOps integration
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # Ensure default node user has access to /usr/local/share
 RUN mkdir -p /usr/local/share/npm-global && \

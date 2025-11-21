@@ -40,6 +40,7 @@ services:
 
       # Azure DevOps authentication
       - AZURE_DEVOPS_PAT=${AZURE_DEVOPS_PAT}
+      - AZURE_DEVOPS_ORG=${AZURE_DEVOPS_ORG}
 
       # Optional: Set other environment variables
       - NODE_ENV=development

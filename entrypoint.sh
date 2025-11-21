@@ -29,5 +29,13 @@ EOF
     echo "Git credentials configured automatically!"
 fi
 
+# Setup Azure DevOps CLI if PAT and ORG are available
+if [ -n "$AZURE_DEVOPS_PAT" ] && [ -n "$AZURE_DEVOPS_ORG" ]; then
+    echo "Configuring Azure DevOps CLI..."
+    az extension add --name azure-devops 2>/dev/null || true
+    az devops configure --defaults organization="$AZURE_DEVOPS_ORG" 2>/dev/null || true
+    echo "$AZURE_DEVOPS_PAT" | az devops login --organization "$AZURE_DEVOPS_ORG" 2>/dev/null || true
+fi
+
 # Execute the main command
 exec "$@"
